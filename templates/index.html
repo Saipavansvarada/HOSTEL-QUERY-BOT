@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Query Bot</title>
+  
+  <!-- Simple CSS Styling -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f6fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      color: #1f3c88;
+    }
+
+    .chat-container {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      margin-right: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 15px;
+      background-color: #1f3c88;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #3b5bb5;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #f0f4ff;
+    }
+
+    .faq-match {
+      margin-top: 5px;
+      padding: 5px;
+      font-size: 14px;
+      color: #555;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <h1>Campus Query Bot</h1>
+
+  <div class="chat-container">
+    <input id="q" type="text" placeholder="Ask about exams, hostel, library..." />
+    <button id="askBtn">Ask</button>
+    <div id="result"></div>
+  </div>
+
+  <!-- JS -->
+  <script>
+    document.getElementById("askBtn").onclick = async () => {
+      const question = document.getElementById("q").value;
+      const resultDiv = document.getElementById("result");
+
+      if (!question.trim()) {
+        resultDiv.innerHTML = "<b>Please type a question.</b>";
+        return;
+      }
+
+      resultDiv.innerHTML = "Thinking... 🤔";
+
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({question})
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          resultDiv.innerHTML = `<b>Error:</b> ${data.error}`;
+        } else {
+          let html = `<b>Answer:</b> ${data.answer}<hr><b>Top Matches:</b><br>`;
+          data.candidates.forEach(c => {
+            html += `<div class="faq-match">- <i>${c.question}</i> (score: ${c.score.toFixed(2)})</div>`;
+          });
+          resultDiv.innerHTML = html;
+        }
+
+      } catch (err) {
+        resultDiv.innerHTML = "<b>Error:</b> Could not contact server.";
+      }
+    };
+  </script>
+
+</body>
+</html>
